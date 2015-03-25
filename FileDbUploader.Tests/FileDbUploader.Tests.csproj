@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{550A38D8-A84A-4C2A-B886-57B15BF4725A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FileDbUploader.Tests</RootNamespace>
+    <AssemblyName>FileDbUploader.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Test.cs" />
+    <Compile Include="MockDbCommand.cs" />
+    <Compile Include="MockDbConnection.cs" />
+    <Compile Include="MockDataParameterCollection.cs" />
+    <Compile Include="MockDbDataParameter.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\EbsDomainObjects\EbsDomainObjects.csproj">
+      <Project>{A92B0C10-0720-420F-8C94-40FD3F25FBCB}</Project>
+      <Name>EbsDomainObjects</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FileUploader\FileDbUploader.csproj">
+      <Project>{D925C7FA-CE90-498C-ADFF-2DE46275B77F}</Project>
+      <Name>FileDbUploader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FileImporter\FileImporter.csproj">
+      <Project>{770D1897-F775-4FD8-8D2C-CA86E441333B}</Project>
+      <Name>FileImporter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FileAggregator\FileAggregator.csproj">
+      <Project>{47EAB157-CF3C-40EF-A073-382B038D87B6}</Project>
+      <Name>FileAggregator</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="TestFlatFile">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
