@@ -3,7 +3,7 @@ ETL Application for loading flat file into Database with On The Fly Aggregation
 
 [EbsDomainObject] is the domain specific dll that contains all the domain objects
 
-[EbsFileETLRunner] is a console application that allows a file to be Etracted, Transformed and Loaded into a database
+[EbsFileETLRunner] is a console application that allows a file to be Extracted, Transformed and Loaded into a database
 
 [Components of the ETL]
 FileImporter - Extracts the contents of the files into rows that can be aggregated. Optional Filters Apply
