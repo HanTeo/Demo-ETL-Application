@@ -115,7 +115,7 @@ MERGE
         }
 
         /// <summary>
-        /// Test simulates the full ETL cycle
+        /// Test simulates the full ETL cycle with a Mocked DB
         /// Extract - Extracts the data from file
         /// Transform - Transform the source data by aggregating it according to the aggregation criteria
         /// Load - Upload the transformed to the database
@@ -130,7 +130,7 @@ MERGE
             // ETL Modules
             var importer = new FlatFileImporter();
             var aggregator = new FileAggregator.FileAggregator();
-            var uploader = new global::FileDbUploader.FileDbUploader();
+            var uploader = new global::FileUploader.FileDbUploader();
 
             // Aggregation and Filter Criteria
             var aggregationKeys = new[] {"CurrencyPair", "Date"};

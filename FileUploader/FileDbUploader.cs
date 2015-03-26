@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Dapper;
 using EbsDomainObjects;
 
-namespace FileDbUploader
+namespace FileUploader
 {
     /// <summary>
     /// Uploads aggregated data rows into DB
@@ -29,7 +29,6 @@ namespace FileDbUploader
 
         /// <summary>
         /// Upload the specified Aggregated DataRows - EbsAggregateRow to a specified DataTable in DB
-        /// Disposes of connection after execution
         /// </summary>
         /// <param name="connection">IDbConnection</param>
         /// <param name="dataTableName">Data table name.</param>
@@ -37,16 +36,9 @@ namespace FileDbUploader
         public int Upload(IDbConnection connection, string dataTableName,
                           IEnumerable<EbsAggregatedRow<decimal>> dataRows)
         {
-            int rowsImported;
-            using (connection)
-            {
-                connection.Open();
-                var sql = string.Format(UpsertCommand, dataTableName);
-                rowsImported = connection.Execute(sql, dataRows);
-                connection.Close();
-            }
-
-            return rowsImported;
+            connection.Open();
+            var sql = string.Format(UpsertCommand, dataTableName);
+            return connection.Execute(sql, dataRows);
         }
     }
 }

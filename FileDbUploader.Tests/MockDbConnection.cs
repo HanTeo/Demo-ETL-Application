@@ -68,7 +68,7 @@ namespace FileDbUploader.Tests
         #region IDisposable implementation
 
         void IDisposable.Dispose()
-        {
+        {   
         }
 
         #endregion

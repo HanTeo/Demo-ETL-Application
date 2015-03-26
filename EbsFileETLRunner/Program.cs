@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using EbsDomainObjects;
-using FileDbUploader.Tests;
 using FileImporter;
 using System.IO;
+using Microsoft.Practices.EnterpriseLibrary.Logging;
+using Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners;
 
 namespace EbsFileETLRunner
 {
@@ -16,13 +19,18 @@ namespace EbsFileETLRunner
     {
         static void Main(string[] args)
         {
+            var config = new LoggingConfiguration();
+            config.AddLogSource("EbsFileETLRunner", SourceLevels.All, true)
+                  .AddTraceListener(new FlatFileTraceListener("Errors.log"));
+            var logWriter = new LogWriter(config);
+
             try
             {
                 if (args.Length < 5)
                 {
                     Console.WriteLine(
                         @"Parameters input format 
-                            e.g: EbsFileETLRunner.exe C:\myfile.txt ""Data Source=MSSQL1;Initial Catalog=AdventureWorks;"" ""dbo.resultsTable"" ""CurrencyPair,Date"" ""Amount"" ""Type=D""");
+                            e.g: EbsFileETLRunner.exe myfile.txt ""Data Source=MSSQL1;Initial Catalog=AdventureWorks;"" ""dbo.resultsTable"" ""CurrencyPair,Date"" ""Amount"" ""Type=D""");
                     return;
                 }
 
@@ -39,41 +47,44 @@ namespace EbsFileETLRunner
                     : new string[0];
 
                 // Filter Criteria
-                var filter = filterBy.Length == 2 ? new KeyValuePair<string, string>(filterBy[0], filterBy[1]) : new KeyValuePair<string, string>();
+                var filter = filterBy.Length == 2 ? new KeyValuePair<string, string>(filterBy[0], filterBy[1]) : new KeyValuePair<string, string>("","");
 
                 if (!File.Exists(filePath))
                 {
-                    Console.WriteLine("File {0} Does Not Exist", filePath);
+                    logWriter.Write(string.Format("File {0} Does Not Exist", filePath), "Error");
                     return;
                 }
 
-                var connection = new MockDbConnection(connectionString);
+                int numberOfRowsLoaded;
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    // ETL Modules
+                    var importer = new FlatFileImporter();
+                    var aggregator = new FileAggregator.FileAggregator();
+                    var uploader = new FileUploader.FileDbUploader();
 
-                // ETL Modules
-                var importer = new FlatFileImporter();
-                var aggregator = new FileAggregator.FileAggregator();
-                var uploader = new FileDbUploader.FileDbUploader();
+                    // Extract
+                    Tuple<FlatFileHeader, IEnumerable<FlatFileDataRow>> importedData = importer.Import(filePath,
+                                                                                                       filter.Key,
+                                                                                                       filter.Value);
 
-                // Extract
-                Tuple<FlatFileHeader, IEnumerable<FlatFileDataRow>> importedData = filterBy.Length == 2 ? importer.Import(filePath, filter.Key,
-                    filter.Value) : importer.Import(filePath);
+                    FlatFileHeader header = importedData.Item1;
+                    IEnumerable<FlatFileDataRow> dataRows = importedData.Item2;
 
-                FlatFileHeader header = importedData.Item1;
-                IEnumerable<FlatFileDataRow> dataRows = importedData.Item2;
+                    // Transform
+                    IEnumerable<EbsAggregatedRow<decimal>> aggregatedData = aggregator.AggregateRows<decimal>(header,
+                                                                                                              dataRows,
+                                                                                                              aggregationKeys,
+                                                                                                              aggregationValueField);
 
-                // Transform
-                IEnumerable<EbsAggregatedRow<decimal>> aggregatedData = aggregator.AggregateRows<decimal>(header,
-                                                                                                          dataRows,
-                                                                                                          aggregationKeys,
-                                                                                                          aggregationValueField);
-
-                // load
-                int rowsImported = uploader.Upload(connection, dataTable, aggregatedData);
-
-                Console.WriteLine("{0} Record Loaded into {1}", rowsImported, dataTable);
+                    // load
+                    numberOfRowsLoaded = uploader.Upload(connection, dataTable, aggregatedData);
+                }
+                logWriter.Write(string.Format("{0} Record Loaded into {1}", numberOfRowsLoaded, dataTable));
             }
             catch (Exception ex)
             {
+                logWriter.Write(ex.Message);
                 Console.WriteLine(ex.Message);
             }
         }
